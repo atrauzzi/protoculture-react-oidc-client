@@ -9,3 +9,4 @@
 ## Meta
 
 `@protoculture/react-oidc-client` is created by Alexander Trauzzi and is available under the [Apache 2.0 license](https://www.apache.org/licenses/LICENSE-2.0.html).
+
