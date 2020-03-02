@@ -1,0 +1,45 @@
+{
+    "name": "@protoculture/react-oidc-client",
+    "description": "",
+    "keywords": [
+        "react",
+        "oidc",
+        "browser",
+        "typescript",
+        "protoculture"
+    ],
+    "version": "0.0.0-development",
+    "license": "Apache-2.0",
+    "maintainers": [
+        {
+            "name": "Alexander Trauzzi",
+            "email": "atrauzzi@gmail.com",
+            "web": "https://github.com/atrauzzi"
+        }
+    ],
+    "homepage": "https://github.com/atrauzzi/protoculture-react-oidc-client",
+    "repository": "github:atrauzzi/protoculture-react-oidc-client",
+    "private": false,
+    "main": "lib/index.js",
+    "types": "lib/index.d.ts",
+    "scripts": {
+        "build": "tsc",
+        "lint": "eslint src/**"
+    },
+    "devDependencies": {
+        "@types/react": "^16.9.23",
+        "@types/urijs": "^1.19.5",
+        "@typescript-eslint/eslint-plugin": "^2.21.0",
+        "@typescript-eslint/parser": "^2.21.0",
+        "eslint": "^6.8.0",
+        "eslint-plugin-import": "^2.20.1",
+        "eslint-plugin-react": "^7.18.3",
+        "parcel-bundler": "^1.12.4",
+        "typescript": "^3.8.3"
+    },
+    "dependencies": {
+        "oidc-client": "^1.10.1",
+        "react": "^16.13.0",
+        "urijs": "^1.19.2"
+    }
+}
