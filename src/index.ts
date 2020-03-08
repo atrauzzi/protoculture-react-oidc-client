@@ -1,1 +1,1 @@
-export { oidcContext, OidcConsumer, OidcProvider, useOidc, Oidc } from "./Oidc";
+export { oidcContext, OidcConsumer, OidcProvider, useOidc, Oidc, OidcProps } from "./Oidc";
