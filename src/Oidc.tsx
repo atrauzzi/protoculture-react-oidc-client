@@ -26,13 +26,13 @@ interface OidcCommonProps
 {
     children?: any;
 
-    accessTokenExpired?(): any;
-    accessTokenExpiring?(): any;
-    silentRenewError?(): any;
-    userLoaded?(): any;
-    userSessionChanged?(): any;
-    userSignedOut?(): any;
-    userUnloaded?(): any;
+    accessTokenExpired?(meta: OidcMeta): any;
+    accessTokenExpiring?(meta: OidcMeta): any;
+    silentRenewError?(meta: OidcMeta): any;
+    userLoaded?(meta: OidcMeta): any;
+    userSessionChanged?(meta: OidcMeta): any;
+    userSignedOut?(meta: OidcMeta): any;
+    userUnloaded?(meta: OidcMeta): any;
 }
 
 interface OidcConfigurationProps
@@ -134,42 +134,42 @@ export function Oidc(props: OidcProps)
     {
         await updateCurrentUser();
 
-        props.userLoaded && await props.userLoaded();
+        props.userLoaded && await props.userLoaded(meta);
     }
 
     async function userSessionChanged()
     {
         await updateCurrentUser();
 
-        props.userSessionChanged && await props.userSessionChanged();
+        props.userSessionChanged && await props.userSessionChanged(meta);
     }
 
     async function userSignedOut()
     {
         await updateCurrentUser();
 
-        props.userSignedOut && await props.userSignedOut();
+        props.userSignedOut && await props.userSignedOut(meta);
     }
 
     async function userUnloaded()
     {
         await updateCurrentUser();
 
-        props.userUnloaded && await props.userUnloaded();
+        props.userUnloaded && await props.userUnloaded(meta);
     }
 
     async function accessTokenExpired()
     {
-        props.accessTokenExpired && await props.accessTokenExpired();
+        props.accessTokenExpired && await props.accessTokenExpired(meta);
     }
 
     async function accessTokenExpiring()
     {
-        props.accessTokenExpiring && await props.accessTokenExpiring();
+        props.accessTokenExpiring && await props.accessTokenExpiring(meta);
     }
 
     async function silentRenewError()
     {
-        props.silentRenewError && await props.silentRenewError();
+        props.silentRenewError && await props.silentRenewError(meta);
     }
 }
