@@ -45,7 +45,7 @@ interface OidcInstanceProps
     userManager?: UserManager;
 }
 
-type OidcProps = OidcCommonProps & (OidcConfigurationProps & OidcInstanceProps);
+export type OidcProps = OidcCommonProps & (OidcConfigurationProps & OidcInstanceProps);
 
 export function Oidc(props: OidcProps)
 {
