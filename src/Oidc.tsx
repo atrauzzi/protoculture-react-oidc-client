@@ -22,19 +22,30 @@ export function useOidc()
     return React.useContext(oidcContext);
 }
 
-interface OidcConfigurationProps
+interface OidcCommonProps
 {
     children?: any;
+
+    accessTokenExpired?(): any;
+    accessTokenExpiring?(): any;
+    silentRenewError?(): any;
+    userLoaded?(): any;
+    userSessionChanged?(): any;
+    userSignedOut?(): any;
+    userUnloaded?(): any;
+}
+
+interface OidcConfigurationProps
+{
     configuration?: UserManagerSettings;
 }
 
 interface OidcInstanceProps
 {
-    children?: any;
     userManager?: UserManager;
 }
 
-type OidcProps = OidcConfigurationProps & OidcInstanceProps;
+type OidcProps = OidcCommonProps & (OidcConfigurationProps & OidcInstanceProps);
 
 export function Oidc(props: OidcProps)
 {
@@ -60,13 +71,20 @@ export function Oidc(props: OidcProps)
 
         function effect()
         {
-            props.configuration && setMeta({
-                userManager: new UserManager(props.configuration),
-                currentUser: null,
-            });
+            const newUserManager = props.configuration
+                ? new UserManager(props.configuration)
+                : props.userManager;
 
-            props.userManager && setMeta({
-                userManager: props.userManager,
+            newUserManager.events.addAccessTokenExpired(accessTokenExpired);
+            newUserManager.events.addAccessTokenExpiring(accessTokenExpiring);
+            newUserManager.events.addSilentRenewError(silentRenewError);
+            newUserManager.events.addUserLoaded(userLoaded);
+            newUserManager.events.addUserSessionChanged(userSessionChanged);
+            newUserManager.events.addUserSignedOut(userSignedOut);
+            newUserManager.events.addUserUnloaded(userUnloaded);
+
+            props.configuration && setMeta({
+                userManager: newUserManager,
                 currentUser: null,
             });
         }
@@ -88,22 +106,9 @@ export function Oidc(props: OidcProps)
                 return;
             }
 
-            // note: First we check to see if we have existing user credentials.
-            const existingUser = await meta.userManager.getUser();
-            if(existingUser)
-            {
-                setMeta({
-                    ...meta,
-                    currentUser: existingUser,
-                });
-
-                return;
-            }
-
             const uri = new Uri(currentLocation);
             const query = uri.query(true) as any;
 
-            // note: If we don't have a user, check if one is ready for us from a callback.
             if (! query["code"])
             {
                 return;
@@ -111,19 +116,60 @@ export function Oidc(props: OidcProps)
 
             await meta.userManager.signinRedirectCallback();
 
-            const currentUser = await meta.userManager?.getUser();
-
-            if (! currentUser)
-            {
-                return;
-            }
-
             history.replaceState(history.state, document.title, uri.query("").toString());
-
-            setMeta({
-                ...meta,
-                currentUser,
-            });
         }
+    }
+
+    async function updateCurrentUser()
+    {
+        const currentUser = await meta.userManager?.getUser();
+
+        setMeta({
+            ...meta,
+            currentUser,
+        });
+    }
+
+    async function userLoaded()
+    {
+        await updateCurrentUser();
+
+        props.userLoaded && await props.userLoaded();
+    }
+
+    async function userSessionChanged()
+    {
+        await updateCurrentUser();
+
+        props.userSessionChanged && await props.userSessionChanged();
+    }
+
+    async function userSignedOut()
+    {
+        await updateCurrentUser();
+
+        props.userSignedOut && await props.userSignedOut();
+    }
+
+    async function userUnloaded()
+    {
+        await updateCurrentUser();
+
+        props.userUnloaded && await props.userUnloaded();
+    }
+
+    async function accessTokenExpired()
+    {
+        props.accessTokenExpired && await props.accessTokenExpired();
+    }
+
+    async function accessTokenExpiring()
+    {
+        props.accessTokenExpiring && await props.accessTokenExpiring();
+    }
+
+    async function silentRenewError()
+    {
+        props.silentRenewError && await props.silentRenewError();
     }
 }

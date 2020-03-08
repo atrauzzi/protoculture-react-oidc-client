@@ -6,7 +6,7 @@
 
 ## About
 
-A convenience wrapper around the `oidc-client` library to make it available in React. Supports both hooks and as consumers.
+A convenience wrapper around the `oidc-client` library to make it available in React. Supports both hooks and react consumers.
 
 ## Meta
 
