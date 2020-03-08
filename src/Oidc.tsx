@@ -3,7 +3,7 @@ import Uri from "urijs";
 import { UserManager, UserManagerSettings, User } from "oidc-client";
 
 
-interface OidcMeta
+export interface OidcMeta
 {
     userManager: null | UserManager;
     currentUser: null | User;
