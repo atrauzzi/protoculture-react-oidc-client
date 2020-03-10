@@ -49,19 +49,34 @@ export type OidcProps = OidcCommonProps & (OidcConfigurationProps & OidcInstance
 
 export function Oidc(props: OidcProps)
 {
-    const [ meta, setMeta ] = React.useState<OidcMeta>({
-        userManager: props.userManager || null,
-        currentUser: null,
-    });
-    const [ currentLocation ] = React.useState<string>(location.href);
+    const userManager = React.useMemo(createUserManager, [ props.configuration, props.userManager ]);
+    const [ currentUser, setCurrentUser ] = React.useState<null | User>(null);
 
-    React.useEffect(configureUserManager, [ props.configuration, props.userManager ]);
-    // note: We'll only check on connection reload or connection reconfiguration.
-    React.useEffect(checkForCode, [ currentLocation, meta.userManager ]);
+    React.useEffect(configureUserManager, [ userManager ]);
+    // note: We'll only check on page load or reconfiguration.
+    React.useEffect(checkForCode, [ location.href, userManager ]);
 
-    return <OidcProvider value={meta}>
+    return <OidcProvider value={{
+        userManager,
+        currentUser,
+    }}>
         { props.children }
     </OidcProvider>;
+
+    function createUserManager()
+    {
+        if (props.userManager)
+        {
+            return props.userManager;
+        }
+
+        if (props.configuration)
+        {
+            return new UserManager(props.configuration);
+        }
+
+        return null;
+    }
 
     function configureUserManager()
     {
@@ -69,29 +84,43 @@ export function Oidc(props: OidcProps)
 
         return cleanup;
 
-        function effect()
+        async function effect()
         {
-            const newUserManager = props.configuration
-                ? new UserManager(props.configuration)
-                : props.userManager;
+            if (! userManager)
+            {
+                return;
+            }
 
-            newUserManager.events.addAccessTokenExpired(accessTokenExpired);
-            newUserManager.events.addAccessTokenExpiring(accessTokenExpiring);
-            newUserManager.events.addSilentRenewError(silentRenewError);
-            newUserManager.events.addUserLoaded(userLoaded);
-            newUserManager.events.addUserSessionChanged(userSessionChanged);
-            newUserManager.events.addUserSignedOut(userSignedOut);
-            newUserManager.events.addUserUnloaded(userUnloaded);
+            userManager.events.addAccessTokenExpired(accessTokenExpired);
+            userManager.events.addAccessTokenExpiring(accessTokenExpiring);
+            userManager.events.addSilentRenewError(silentRenewError);
+            userManager.events.addUserLoaded(userLoaded);
+            userManager.events.addUserSessionChanged(userSessionChanged);
+            userManager.events.addUserSignedOut(userSignedOut);
+            userManager.events.addUserUnloaded(userUnloaded);
 
-            props.configuration && setMeta({
-                userManager: newUserManager,
-                currentUser: null,
-            });
+            // note: Necessary because userManager fires its userLoaded event before we can register a listener.
+            const rememberedUser = await userManager.getUser();
+            if (rememberedUser && ! currentUser)
+            {
+                await userLoaded(rememberedUser);
+            }
         }
 
         function cleanup()
         {
-            // todo: Consider any potentially necessary cleanup tasks.
+            if (! userManager)
+            {
+                return;
+            }
+
+            userManager.events.removeAccessTokenExpired(accessTokenExpired);
+            userManager.events.removeAccessTokenExpiring(accessTokenExpiring);
+            userManager.events.removeSilentRenewError(silentRenewError);
+            userManager.events.removeUserLoaded(userLoaded);
+            userManager.events.removeUserSessionChanged(userSessionChanged);
+            userManager.events.removeUserSignedOut(userSignedOut);
+            userManager.events.removeUserUnloaded(userUnloaded);
         }
     }
 
@@ -101,75 +130,71 @@ export function Oidc(props: OidcProps)
 
         async function effect()
         {
-            if (! meta.userManager)
+            if (! userManager)
             {
                 return;
             }
 
-            const uri = new Uri(currentLocation);
-            const query = uri.query(true) as any;
+            const currentUri = new Uri(location.href);
+            const currentQuery = currentUri.query(true) as any;
 
-            if (! query["code"])
+            if (! currentQuery["code"])
             {
                 return;
             }
 
-            await meta.userManager.signinRedirectCallback();
+            const callbackUri = currentUri.toString();
 
-            history.replaceState(history.state, document.title, uri.query("").toString());
+            // note: Scrub the code out of browser history to prevent any accidental
+            //       re-auths from React redraws or user navigation.
+            history.replaceState(history.state, document.title, currentUri.query("").toString());
+
+            await userManager.signinRedirectCallback(callbackUri);
         }
     }
 
-    async function updateCurrentUser()
+    async function userLoaded(user: User)
     {
-        const currentUser = await meta.userManager?.getUser();
+        setCurrentUser(user);
 
-        setMeta({
-            ...meta,
-            currentUser,
-        });
-    }
-
-    async function userLoaded()
-    {
-        await updateCurrentUser();
-
-        props.userLoaded && await props.userLoaded(meta);
+        props.userLoaded && await props.userLoaded(createMeta(user));
     }
 
     async function userSessionChanged()
     {
-        await updateCurrentUser();
-
-        props.userSessionChanged && await props.userSessionChanged(meta);
+        props.userSessionChanged && await props.userSessionChanged(createMeta());
     }
 
     async function userSignedOut()
     {
-        await updateCurrentUser();
-
-        props.userSignedOut && await props.userSignedOut(meta);
+        props.userSignedOut && await props.userSignedOut(createMeta());
     }
 
     async function userUnloaded()
     {
-        await updateCurrentUser();
-
-        props.userUnloaded && await props.userUnloaded(meta);
+        props.userUnloaded && await props.userUnloaded(createMeta());
     }
 
     async function accessTokenExpired()
     {
-        props.accessTokenExpired && await props.accessTokenExpired(meta);
+        props.accessTokenExpired && await props.accessTokenExpired(createMeta());
     }
 
     async function accessTokenExpiring()
     {
-        props.accessTokenExpiring && await props.accessTokenExpiring(meta);
+        props.accessTokenExpiring && await props.accessTokenExpiring(createMeta());
     }
 
     async function silentRenewError()
     {
-        props.silentRenewError && await props.silentRenewError(meta);
+        props.silentRenewError && await props.silentRenewError(createMeta());
+    }
+
+    function createMeta(user?: User): OidcMeta
+    {
+        return {
+            userManager,
+            currentUser: user || currentUser,
+        };
     }
 }
