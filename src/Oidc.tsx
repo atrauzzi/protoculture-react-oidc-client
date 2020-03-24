@@ -160,11 +160,11 @@ export function Oidc(props: OidcProps)
 
             const callbackUri = currentUri.toString();
 
+            await userManager.signinRedirectCallback(callbackUri);
+
             // note: Scrub the code out of browser history to prevent any accidental
             //       re-auths from React redraws or user navigation.
             history.replaceState(history.state, document.title, currentUri.query("").toString());
-
-            await userManager.signinRedirectCallback(callbackUri);
         }
     }
 
