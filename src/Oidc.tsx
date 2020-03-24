@@ -26,6 +26,8 @@ interface OidcCommonProps
 {
     children?: any;
 
+    implicitConsent?: boolean;
+
     accessTokenExpired?(meta: OidcMeta): any;
     accessTokenExpiring?(meta: OidcMeta): any;
     silentRenewError?(meta: OidcMeta): any;
@@ -125,7 +127,9 @@ export function Oidc(props: OidcProps)
 
             if (! rememberedUser && ! currentUser)
             {
-                return userManager.signinRedirect();
+                return props.implicitConsent
+                    ? userManager.signinSilent()
+                    : userManager.signinRedirect();
             }
         }
 
