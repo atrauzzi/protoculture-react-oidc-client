@@ -99,11 +99,19 @@ export function Oidc(props: OidcProps)
             userManager.events.addUserSignedOut(userSignedOut);
             userManager.events.addUserUnloaded(userUnloaded);
 
+            // note: Code after this represents the "on first run" checks to rediscover or obtain an authorization.
+            //       In the future, I could see this being configurable or simply turned into callbacks.
+
             // note: Necessary because userManager fires its userLoaded event before we can register a listener.
             const rememberedUser = await userManager.getUser();
             if (rememberedUser && ! currentUser)
             {
                 await userLoaded(rememberedUser);
+            }
+
+            if (! rememberedUser && ! currentUser)
+            {
+                await userManager.signinRedirect();
             }
         }
 
