@@ -53,7 +53,7 @@ export function Oidc(props: OidcProps)
     const [ currentUser, setCurrentUser ] = React.useState<null | User>(null);
 
     // note: We'll only check on page load or reconfiguration.
-    React.useEffect(checkForCode, [ location.href, userManager ]);
+    // React.useEffect(checkForCode, [ location.href, userManager ]);
     React.useEffect(configureUserManager, [ userManager ]);
 
     return <OidcProvider value={{
@@ -80,17 +80,17 @@ export function Oidc(props: OidcProps)
 
     function configureUserManager()
     {
+        if (! userManager)
+        {
+            return;
+        }
+
         effect();
 
         return cleanup;
 
         async function effect()
         {
-            if (! userManager)
-            {
-                return;
-            }
-
             userManager.events.addAccessTokenExpired(accessTokenExpired);
             userManager.events.addAccessTokenExpiring(accessTokenExpiring);
             userManager.events.addSilentRenewError(silentRenewError);
@@ -102,23 +102,30 @@ export function Oidc(props: OidcProps)
             // note: Code after this represents the "on first run" checks to rediscover or obtain an authorization.
             //       In the future, I could see this being configurable or simply turned into callbacks.
 
+            const currentUri = new Uri(location.href);
+            const currentQuery = currentUri.query(true) as any;
+
+            if (currentQuery["code"])
+            {
+                const callbackUri = currentUri.toString();
+
+                // note: Scrub the code out of browser history to prevent any accidental
+                //       re-auths from React redraws or user navigation.
+                history.replaceState(history.state, document.title, currentUri.query("").toString());
+
+                return userManager.signinRedirectCallback(callbackUri);
+            }
+
             // note: Necessary because userManager fires its userLoaded event before we can register a listener.
             const rememberedUser = await userManager.getUser();
             if (rememberedUser && ! currentUser)
             {
-                await userLoaded(rememberedUser);
+                return userLoaded(rememberedUser);
             }
 
-            // note: This check ensures we don't abort any authorization callbacks in progress.
-            const currentUri = new Uri(location.href);
-            const currentQuery = currentUri.query(true) as any;
-            if (
-                ! currentQuery["code"]
-                && ! rememberedUser
-                && ! currentUser
-            )
+            if (! rememberedUser && ! currentUser)
             {
-                await userManager.signinRedirect();
+                return userManager.signinRedirect();
             }
         }
 
@@ -139,34 +146,34 @@ export function Oidc(props: OidcProps)
         }
     }
 
-    function checkForCode()
-    {
-        effect();
+    // function checkForCode()
+    // {
+    //     effect();
 
-        async function effect()
-        {
-            if (! userManager)
-            {
-                return;
-            }
+    //     async function effect()
+    //     {
+    //         if (! userManager)
+    //         {
+    //             return;
+    //         }
 
-            const currentUri = new Uri(location.href);
-            const currentQuery = currentUri.query(true) as any;
+    //         const currentUri = new Uri(location.href);
+    //         const currentQuery = currentUri.query(true) as any;
 
-            if (! currentQuery["code"])
-            {
-                return;
-            }
+    //         if (! currentQuery["code"])
+    //         {
+    //             return;
+    //         }
 
-            const callbackUri = currentUri.toString();
+    //         const callbackUri = currentUri.toString();
 
-            await userManager.signinRedirectCallback(callbackUri);
+    //         // note: Scrub the code out of browser history to prevent any accidental
+    //         //       re-auths from React redraws or user navigation.
+    //         history.replaceState(history.state, document.title, currentUri.query("").toString());
 
-            // note: Scrub the code out of browser history to prevent any accidental
-            //       re-auths from React redraws or user navigation.
-            history.replaceState(history.state, document.title, currentUri.query("").toString());
-        }
-    }
+    //         await userManager.signinRedirectCallback(callbackUri);
+    //     }
+    // }
 
     async function userLoaded(user: User)
     {
