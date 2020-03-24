@@ -108,11 +108,6 @@ export function Oidc(props: OidcProps)
             {
                 await userLoaded(rememberedUser);
             }
-
-            if (! rememberedUser && ! currentUser)
-            {
-                await userManager.signinRedirect();
-            }
         }
 
         function cleanup()
