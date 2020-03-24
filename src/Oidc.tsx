@@ -52,9 +52,9 @@ export function Oidc(props: OidcProps)
     const userManager = React.useMemo(createUserManager, [ props.configuration, props.userManager ]);
     const [ currentUser, setCurrentUser ] = React.useState<null | User>(null);
 
-    React.useEffect(configureUserManager, [ userManager ]);
     // note: We'll only check on page load or reconfiguration.
     React.useEffect(checkForCode, [ location.href, userManager ]);
+    React.useEffect(configureUserManager, [ userManager ]);
 
     return <OidcProvider value={{
         userManager,
@@ -107,6 +107,18 @@ export function Oidc(props: OidcProps)
             if (rememberedUser && ! currentUser)
             {
                 await userLoaded(rememberedUser);
+            }
+
+            // note: This check ensures we don't abort any authorization callbacks in progress.
+            const currentUri = new Uri(location.href);
+            const currentQuery = currentUri.query(true) as any;
+            if (
+                ! currentQuery["code"]
+                && ! rememberedUser
+                && ! currentUser
+            )
+            {
+                await userManager.signinRedirect();
             }
         }
 
