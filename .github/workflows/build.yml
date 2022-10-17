@@ -13,6 +13,13 @@ jobs:
         with:
           versionSpec: '5.x'
 
+      - name: Fetch tags for GitVersion
+        run: git fetch --tags --unshallow
+
+      - name: Fetch master for GitVersion
+        if: github.ref != 'refs/heads/master'
+        run: git branch --create-reflog master origin/master
+
       - uses: actions/setup-node@v3
 
       - name: Install Yarn
@@ -29,13 +36,6 @@ jobs:
 
       - name: Lint
         run: yarn lint
-
-      - name: Fetch tags for GitVersion
-        run: git fetch --tags --unshallow
-
-      - name: Fetch master for GitVersion
-        if: github.ref != 'refs/heads/master'
-        run: git branch --create-reflog master origin/master
 
       - name: GitVersion
         id: gitversion
