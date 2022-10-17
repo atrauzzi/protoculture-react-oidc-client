@@ -13,8 +13,13 @@ jobs:
         with:
           versionSpec: '5.x'
 
-      - name: Fetch tags for GitVersion
-        run: git fetch --tags --unshallow
+      - name: Checkout
+        uses: actions/checkout@v2
+        with:
+          fetch-depth: 0
+
+#      - name: Fetch tags for GitVersion
+#        run: git fetch --tags --unshallow
 
       - name: Fetch master for GitVersion
         if: github.ref != 'refs/heads/master'
