@@ -88,6 +88,8 @@ jobs:
           name: build
 
       - name: Load Metadata
+        env:
+          ACTIONS_ALLOW_UNSECURE_COMMANDS: true
         run: |
           echo "::set-env name=VERSION::`cat ./build/version`"
           echo "::set-env name=PACKAGE::`cat ./build/package`"
