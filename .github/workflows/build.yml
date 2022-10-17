@@ -10,6 +10,8 @@ jobs:
 
     steps:
       - uses: gittools/actions/gitversion/setup@v0.9.7
+        with:
+          versionSpec: '5.x'
 
       - uses: actions/setup-node@v3
 
