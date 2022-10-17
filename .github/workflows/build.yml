@@ -9,8 +9,7 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-      - uses: actions/setup-dotnet@v1
-      - uses: actions/setup-gitversion@v1.0.0
+      - uses: roryprimrose/rungitversion
 
       - uses: actions/setup-node@v3
 
