@@ -31,7 +31,7 @@ jobs:
 
       - name: GitVersion
         id: gitversion
-        uses: roryprimrose/rungitversion@v1.0.0
+        uses: gittools/actions/gitversion/execute@v0.9.7
 
       - name: Yarn Version
         run: yarn version --no-git-tag-version --new-version ${{ steps.gitversion.outputs.FullSemVer }}
