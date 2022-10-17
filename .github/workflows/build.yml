@@ -21,6 +21,12 @@ jobs:
       - name: Yarn Install
         run: yarn install --frozen-lockfile
 
+      - name: Ell Ess
+        run: ls -Al
+
+      - name: Ell Ess Two
+        run: ls -Al ../
+
       - name: Lint
         run: yarn lint
 
