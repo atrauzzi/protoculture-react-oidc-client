@@ -9,7 +9,8 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-      - uses: nmcc/actions/gitversion@v1
+      - uses: actions/setup-setup-dotnet@v1
+      - uses: actions/setup-gitversion@v1.0.0
 
       - uses: actions/setup-node@v3
 
