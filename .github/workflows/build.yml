@@ -18,9 +18,6 @@ jobs:
         with:
           fetch-depth: 0
 
-#      - name: Fetch tags for GitVersion
-#        run: git fetch --tags --unshallow
-
       - name: Fetch master for GitVersion
         if: github.ref != 'refs/heads/master'
         run: git branch --create-reflog master origin/master
@@ -32,12 +29,6 @@ jobs:
 
       - name: Yarn Install
         run: yarn install --frozen-lockfile
-
-      - name: Ell Ess
-        run: ls -Al
-
-      - name: Ell Ess Two
-        run: ls -Al ../
 
       - name: Lint
         run: yarn lint
