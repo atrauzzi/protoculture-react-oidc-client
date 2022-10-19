@@ -1,6 +1,6 @@
 import React from "react";
 import Uri from "urijs";
-import { UserManager, UserManagerSettings, User } from "oidc-client";
+import { UserManager, UserManagerSettings, User } from "oidc-client-ts";
 
 
 export interface OidcMeta
