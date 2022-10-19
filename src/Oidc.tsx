@@ -26,6 +26,8 @@ interface OidcCommonProps
 {
     children?: any;
 
+    autoLogin?: boolean;
+
     implicitConsent?: boolean;
 
     accessTokenExpired?(meta: OidcMeta): any;
@@ -125,7 +127,10 @@ export function Oidc(props: OidcProps)
                 return userLoaded(rememberedUser);
             }
 
-            if (! rememberedUser && ! currentUser)
+            if (
+                props.autoLogin
+                && (! rememberedUser && ! currentUser)
+            )
             {
                 return props.implicitConsent
                     ? userManager.signinSilent()
